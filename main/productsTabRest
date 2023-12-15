@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 14 17:24:55 2023
+
+@author: pablo
+"""
+
+  def enableButtonUpdateProductsTab(self):
+      self.estado = 'MODIFICAR'
+      self.validateButtons(button='MODIFICAR')
+
+  def enableButtonDeleteProductsTab(self):
+      if self.mainWindows.btnSaveProductsTab.isEnabled() != True:
+          self.productConnection.deleteProduct(self.product)
+          self.loadTable()
+
+      self.validateButtons(button='BORRAR')
+
+  def loadTable(self):
+
+      parameter = self.mainWindows.txtFilterProductProductsTab.text()
+      typeParameter = ''
+      if self.mainWindows.cbFilterProductProductsTab.currentText() == 'Nombre':
+          typeParameter = 'pr.productName'
+      elif self.mainWindows.cbFilterProductProductsTab.currentText() == 'Marca':
+          typeParameter = 'b.brandName'
+      else:
+          typeParameter = 'c.categoryName'
+
+      parameterState = 1
+      if self.mainWindows.cbInactiveProductsTab.isChecked() is True:
+          parameterState = 0
+
+      parameterStock = 1
+      if self.mainWindows.cbOutStock.isChecked() is True:
+          parameterStock = 0
+
+      productlist = self.productConnection.productListing(typeParameter, parameter, parameterState, parameterStock)
+
+      if len(productlist) > 0:
+
+          header = ['id Prod.','Nombre', 'Descripcion', 'P. Compra', 'P. Venta', 'G', 'Estado', 'Cant', 'Cantidad Min',
+                    'id Marca', 'Marca', 'id Categoría', 'Categoría', 'id Proveedor', 'Proveedor']
+          self.tablaModel = TableModel(self.mainWindows.tvProductProductsTab, productlist, header)
+          self.mainWindows.tvProductProductsTab.setModel(self.tablaModel)
+          self.mainWindows.tvProductProductsTab.selectionModel().currentChanged.connect(self.changeSelectedTable)
+
+          self.mainWindows.tvProductProductsTab.setColumnHidden(0, True)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(1, 200)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(2, 320)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(3, 60)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(4, 60)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(5, 60)
+          self.mainWindows.tvProductProductsTab.setColumnHidden(6, True)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(7, 40)
+          self.mainWindows.tvProductProductsTab.setColumnHidden(8, True)
+          self.mainWindows.tvProductProductsTab.setColumnHidden(9, True)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(10, 130)
+          self.mainWindows.tvProductProductsTab.setColumnHidden(11, True)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(12, 130)
+          self.mainWindows.tvProductProductsTab.setColumnHidden(13, True)
+          self.mainWindows.tvProductProductsTab.setColumnWidth(14, 130)
+      else:
+          self.mainWindows.tvProductProductsTab.setModel(None)
+
+  def changeSelectedTable(self, selected, deselected):
+
+      productList = selected.model().mylist
+      selectedProduct = productList[selected.row()]
+      self.product = Product()
+      self.category = Category()
+      self.supplier = Supplier()
+      self.brand = Brand()
+
+      self.product.setProductId(selectedProduct[0])
+      self.product.setProductName(selectedProduct[1])
+      self.product.setProductDescription(selectedProduct[2])
+      self.product.setPurchasePrice(selectedProduct[3])
+      self.product.setProductSalesPrice(selectedProduct[4])
+      self.product.setProductGenre(selectedProduct[5])
+      self.product.setProductStatus(selectedProduct[6])
+      self.product.setProductQuantity(selectedProduct[7])
+      self.product.setProductMinimumQuantity(selectedProduct[8])
+      self.brand.setBrandId(selectedProduct[9])
+      self.brand.setBrandName(selectedProduct[10])
+      self.product.setBrandName(self.brand)
+      self.category.setCategoryId(selectedProduct[11])
+      self.category.setCategoryName(selectedProduct[12])
+      self.product.setCategoryName(self.category)
+
+      self.supplier.setSupplierId(selectedProduct[13])
+      self.supplier.setPersonName(selectedProduct[14])
+      self.product.setProductSupplier(self.supplier)
+
+      self.mainWindows.tvProductProductsTab.setRowHeight(deselected.row(),33)
+      self.mainWindows.tvProductProductsTab.setRowHeight(selected.row(),45)
+
+      self.setFields()
+      self.mainWindows.btnUpdateProductsTab.setEnabled(True)
+      self.mainWindows.btnDeleteProductsTab.setEnabled(True)
+
+    def setFields(self):
+        self.mainWindows.txtProductNameProductsTab.setText(self.product.getProductName())
+        self.mainWindows.txtProductDescriptionProductsTab.setText(str(self.product.getProductDescription()))
+        self.mainWindows.txtPurchasePriceProductsTab.setText(str(self.product.getPurchasePrice()))
+        self.mainWindows.txtSalesPriceProductsTab.setText(str(self.product.getProductSalesPrice()))
+        self.mainWindows.txtSupplierProductstab.setText(str(self.product.getProductSupplier().personName()))
+
+        self.mainWindows.sbQuantityProductsTab.setValue(int(self.product.getProductQuantity()))
+        self.mainWindows.sbMinimumQuantityProductsTab.setValue(int(self.product.getProductMinimumQuantity()))
+
+        self.mainWindows.txtCategoryProductstab.setText(str(self.product.getProductCategory().getCategoryName()))
+        self.mainWindows.txtBrandproductsTab.setText(str(self.product.getProductBrand().getBrandName()))
+
+        if self.product.getProductStatus() == 1:
+            self.mainWindows.cbProductStatusProductsTab.setCurrentIndex(0)
+        else:
+            self.mainWindows.cbProductStatusProductsTab.setCurrentIndex(1)
+
+        if self.product.getProductGenre() == 'F':
+            self.mainWindows.rbFemaleProductsTab.setChecked(True)
+        elif self.product.getProductGenre() == 'M':
+            self.mainWindows.rbMaleProductsTab.setChecked(True)
+        else:
+            self.mainWindows.rbUndenidedProductsTab.setChecked(True)
+
+    def setBrandCompleter(self):
+        brandList = self.productConnection.brandsListing()
+        self.brandCompleter = QCompleter(brandList)
+
+        self.brandCompleter.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.mainWindows.txtBrandproductsTab.setCompleter(self.brandCompleter)
+
+    def setCategoryCompleter(self):
+        categoryList = self.productConnection.categoriesListing()
+        self.categoryCompleter = QCompleter(categoryList)
+        #self.categoryCompleter.dynamicPropertyNames()
+        self.categoryCompleter.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.mainWindows.txtCategoryProductstab.setCompleter(self.categoryCompleter)
+
+    # def setSupplierCompleter(self):
+    #     suplierList = self.productConnection.suppliersListing()
+    #     self.supplierCompleter = QCompleter(suplierList)
+
+    #     self.supplierCompleter.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+    #     self.mainWindows.txtSupplierProductstab.setCompleter(self.supplierCompleter)
