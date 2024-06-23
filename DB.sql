@@ -280,7 +280,7 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
-INSERT INTO DB.addresses (addressId, streetAddress, numberAddress, floorAddress, dptoAddress)  VALUES ( 1, 'crerrito', '3372', '0', '2');
+INSERT INTO DB.addresses (addressId, streetAddress, numberAddress, floorAddress, dptoAddress)  VALUES ( 1, 'cerrito', '3372', '0', '2');
 INSERT INTO DB.persons (personName, personEmail, addresses_addressId) VALUES ( 'Perez, Pablo', 'perico3372@gmail.com', 1);
 INSERT INTO DB.users (userId, userType, persons_personId, userPassword, userName) VALUES (1, 'ADMINISTRADOR', 1, 'admin', 'admin');
 
